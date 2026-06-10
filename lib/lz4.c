@@ -121,6 +121,10 @@
 /*-************************************
 *  Compiler Options
 **************************************/
+#if defined(__GNUC__) && (__GNUC__ >= 12)
+#  pragma GCC optimize("no-tree-vectorize")
+#endif
+
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)  /* Visual Studio 2005+ */
 #  include <intrin.h>               /* only present in VS2005+ */
 #  pragma warning(disable : 4127)   /* disable: C4127: conditional expression is constant */
