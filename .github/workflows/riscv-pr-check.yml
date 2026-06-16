@@ -1,0 +1,43 @@
+name: RISC-V PR Check
+
+on:
+  pull_request:
+    branches:
+      - riscv-ci # 替换为你最终使用的分支名
+
+permissions:
+  contents: read
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+
+jobs:
+  riscv-test:
+    name: RISC-V Basic Functionality Test
+    runs-on: ubuntu-latest
+    env:
+      XCC: riscv64-linux-gnu-gcc
+      XEMU: qemu-riscv64-static
+      MAKEVAR: ""
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install RISC-V cross-compilation tools and QEMU
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-multilib qemu-utils qemu-user-static
+        sudo apt-get install -y qemu-system-riscv64 gcc-riscv64-linux-gnu
+
+    - name: Display environment info
+      run: |
+        echo "=== Cross Compiler Information ==="
+        type $XCC && which $XCC && $XCC --version
+        $XCC -v
+        echo "=== QEMU Emulator Information ==="
+        type $XEMU && which $XEMU && $XEMU --version
+
+    - name: Run RISC-V platform tests
+      run: make platformTest V=1 CC=$XCC QEMU_SYS=$XEMU $MAKEVAR
