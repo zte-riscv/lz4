@@ -2,7 +2,11 @@
 name: Release & Environment
 on:
   push:
+    branches-ignore:
+      - riscv-ci
   pull_request:
+    branches-ignore:
+      - riscv-ci
 
 permissions:
   contents: read
