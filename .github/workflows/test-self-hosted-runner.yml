@@ -9,9 +9,8 @@ on:
 jobs:
   verify-runner:
     name: Verify My RISC-V Runner
-    # 这里通过 label 指定你的物理机 runner
-    # 通常 self-hosted 默认会带 self-hosted 标签，这里加上你自定义的名字或标签
-    runs-on: [self-hosted, my-riscv-runner]
+    # 根据你注册时的 --labels 参数，这里使用精确匹配
+    runs-on: [self-hosted, linux, riscv64]
 
     steps:
       - name: Checkout repository
