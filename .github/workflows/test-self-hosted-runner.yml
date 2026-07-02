@@ -1,0 +1,40 @@
+name: Test Self-Hosted RISC-V Runner
+
+on:
+  push:
+    branches:
+      - '**' # 监听所有分支的 push
+  workflow_dispatch: # 允许在 GitHub 网页端手动触发
+
+jobs:
+  verify-runner:
+    name: Verify My RISC-V Runner
+    # 这里通过 label 指定你的物理机 runner
+    # 通常 self-hosted 默认会带 self-hosted 标签，这里加上你自定义的名字或标签
+    runs-on: [self-hosted, my-riscv-runner]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Print System Information
+        run: |
+          echo "=== OS Information ==="
+          uname -a
+          
+          echo "=== CPU Information ==="
+          # 尝试使用 lscpu，如果没有则退网查看 cpuinfo
+          lscpu || cat /proc/cpuinfo
+          
+          echo "=== Memory Information ==="
+          free -h || cat /proc/meminfo
+
+      - name: Verify Workspace
+        run: |
+          echo "=== Workspace Information ==="
+          echo "Current workspace: $GITHUB_WORKSPACE"
+          ls -la
+
+      - name: Print Success Message
+        run: |
+          echo "🎉 成功！The self-hosted runner (my-riscv-runner) is working perfectly!"
