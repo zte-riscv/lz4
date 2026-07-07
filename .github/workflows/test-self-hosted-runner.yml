@@ -1,0 +1,66 @@
+name: Test Self-Hosted RISC-V Runner
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build LZ4 + Smoke Test
+    runs-on: [self-hosted, linux, riscv64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Print System Information
+        run: |
+          set -euxo pipefail
+          echo "=== OS ==="
+          uname -a
+          uname -m
+          echo "=== CPU ==="
+          lscpu || cat /proc/cpuinfo
+          echo "=== Toolchain ==="
+          command -v gcc && gcc --version | head -n 1 || true
+          command -v clang && clang --version | head -n 1 || true
+          make --version | head -n 1
+          echo "=== Memory ==="
+          free -h || cat /proc/meminfo
+
+      - name: Build (make default)
+        run: |
+          set -euxo pipefail
+          make clean
+          make -j"$(nproc)" V=1
+
+      - name: Print LZ4 Version
+        run: |
+          set -euxo pipefail
+          ./programs/lz4 --version
+          ./programs/lz4 -h | head -n 40
+
+      - name: Smoke Test (compress/decompress)
+        run: |
+          set -euxo pipefail
+          echo "lz4 self-hosted runner smoke test $(date -u +%FT%TZ)" > input.txt
+          printf '%0.s0123456789' {1..1000} >> input.txt
+          ./programs/lz4 -f input.txt compressed.lz4
+          ./programs/lz4 -f -d compressed.lz4 output.txt
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum input.txt output.txt
+            test "$(sha256sum input.txt | awk '{print $1}')" = "$(sha256sum output.txt | awk '{print $1}')"
+          else
+            md5sum input.txt output.txt
+            test "$(md5sum input.txt | awk '{print $1}')" = "$(md5sum output.txt | awk '{print $1}')"
+          fi
+          echo "Smoke test OK"
+
+      - name: Run LZ4 Test Suite
+        run: |
+          set -euxo pipefail
+          make -j"$(nproc)" test V=1
