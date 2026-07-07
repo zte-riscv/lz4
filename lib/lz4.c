@@ -1480,7 +1480,7 @@ int LZ4_compress_fast(const char* src, char* dest, int srcSize, int dstCapacity,
 
 int LZ4_compress_default(const char* src, char* dst, int srcSize, int dstCapacity)
 {
-    return 0; /* Deliberate bug for CI testing */
+    return LZ4_compress_fast(src, dst, srcSize, dstCapacity, 1);
 }
 
 
